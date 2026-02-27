@@ -1,0 +1,1241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hold'em Coach Suite — Phase 1 Play Skeleton</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --panel:#15161a; --panel2:#1b1d22; --text:#f1f3f7; --muted:#a3a9b8;
+    --line:#2a2f3a; --good:#19d27c; --bad:#ff5b6b; --blue:#4da3ff; --orange:#ffb347;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+  .app{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:82px}
+  header{position:sticky;top:0;z-index:10;background:rgba(11,11,13,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .brand{font-weight:700;letter-spacing:.2px;user-select:none}
+  .brand small{color:var(--muted);font-weight:600}
+  .iconbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 10px;border-radius:10px;font-size:14px}
+  main{padding:12px;display:flex;flex-direction:column;gap:12px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:12px}
+  .title{font-size:16px;font-weight:700;margin:0 0 8px}
+  .sub{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .space{justify-content:space-between}
+  .btn{border:1px solid var(--line);background:#20232b;color:var(--text);padding:10px 12px;border-radius:10px;font-weight:600;min-height:42px}
+  .btn.primary{background:#2a3450;border-color:#405180}
+  .btn.good{background:#1d3b30;border-color:#2b6d55}
+  .btn.warn{background:#4a3420;border-color:#7a5330}
+  .btn.danger{background:#4a2428;border-color:#823841}
+  .btn.small{padding:8px 10px;min-height:36px;font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#1b1f27;color:var(--muted);border-radius:999px;padding:5px 10px;font-size:12px}
+  .pill.ok{color:#b8ffde;border-color:#2d7058;background:#13281f}
+  .pill.warn{color:#ffd7a3;border-color:#7e5f2e;background:#261d12}
+  .pill.bad{color:#ffc1c8;border-color:#7f3942;background:#291418}
+  .kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpi .box{background:#171920;border:1px solid var(--line);border-radius:10px;padding:8px}
+  .kpi .n{font-size:18px;font-weight:800}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  .hidden{display:none !important}
+  .nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,11,13,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 8px calc(8px + env(safe-area-inset-bottom));gap:8px;z-index:20}
+  .nav button{border:1px solid var(--line);background:#171a20;color:var(--muted);border-radius:12px;padding:10px 6px;font-weight:700;font-size:12px;min-height:48px}
+  .nav button.active{color:var(--text);background:#222735;border-color:#394055}
+  .table-wrap{background:radial-gradient(circle at center,#164f2f 0%, #0f3b23 55%, #0a2818 100%);border:1px solid #265a3f;border-radius:18px;padding:12px;position:relative;overflow:hidden}
+  .table-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .meta-box{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;text-align:center}
+  .meta-box .v{font-weight:800}
+  .meta-box .k{font-size:11px;color:#d8e7dc}
+  .board{display:flex;gap:6px;justify-content:center;margin:10px 0}
+  
+  .suit{margin-left:1px;}
+  .suit.red{color:#ff4d6d;}
+
+  .cardbox{width:40px;height:56px;border-radius:8px;background:#f7f9fc;color:#111;display:flex;align-items:center;justify-content:center;font-weight:800;border:1px solid #cdd6e4}
+  .cardbox.back{background:repeating-linear-gradient(45deg,#2e3a52,#2e3a52 5px,#455678 5px,#455678 10px);color:#fff;border-color:#596b92}
+  .seats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+  .seat{background:rgba(0,0,0,.26);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;min-height:76px}
+  .seat.hero{border-color:#4da3ff;background:rgba(32,63,102,.35)}
+  .seat.folded{opacity:.55}
+  .seat .top{display:flex;justify-content:space-between;gap:6px;align-items:center}
+  .seat .name{font-weight:700;font-size:13px}
+  .seat .stack{font-size:12px;color:#d6e5d8}
+  .seat .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+  .tag{font-size:10px;padding:2px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25)}
+  .hero-cards{display:flex;gap:6px;margin-top:6px}
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .action-row .btn{min-height:46px}
+  .action-row .wide{grid-column:1/-1}
+  .raise-preset{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .log{max-height:180px;overflow:auto;background:#12141a;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px}
+  .log div{margin:2px 0;color:#d1d7e4}
+  .list{display:flex;flex-direction:column;gap:8px}
+  .session-item{border:1px solid var(--line);background:#171a20;border-radius:12px;padding:10px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .muted{color:var(--muted)}
+  .help-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;z-index:40}
+  .help-modal.show{display:flex}
+  .sheet{width:100%;max-height:84dvh;overflow:auto;background:#101217;border-top-left-radius:16px;border-top-right-radius:16px;border:1px solid var(--line);padding:14px}
+  .notice{font-size:12px;color:#ffd7a3;border:1px solid #6f572a;background:#2a2111;border-radius:10px;padding:8px}
+  .small{font-size:12px}
+  .spacer{height:4px}
+
+/* Hand Result Overlay */
+.overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.72);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px; z-index:50;
+}
+.overlay .panel{
+  width:min(520px, 100%); background:#0f141b; border:1px solid #263241;
+  border-radius:16px; padding:14px; box-shadow:0 18px 60px rgba(0,0,0,.45);
+}
+.overlay .panel h3{ margin:0 0 6px 0; }
+.overlay .cards{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.cardbox.flip{
+  transform-style:preserve-3d;
+  animation:flipIn .55s ease both;
+}
+@keyframes flipIn{
+  0%{ transform:rotateY(90deg); opacity:0; }
+  100%{ transform:rotateY(0deg); opacity:1; }
+}
+.overlay .rowbtn{ display:flex; gap:10px; margin-top:12px; }
+.overlay .players{ margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+.overlay .pl{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  padding:10px; border:1px solid #1f2a35; border-radius:14px; background:#0b1016;
+}
+.overlay .pl .left{ display:flex; flex-direction:column; gap:4px; }
+.overlay .pl .name{ font-weight:800; }
+.overlay .pl .meta{ font-size:12px; opacity:.8; }
+.overlay .pl .cards{ margin:0; }
+
+
+/* Tooltip */
+#tooltip{position:fixed;left:12px;right:12px;bottom:96px;z-index:9999;background:rgba(10,12,16,.95);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#tooltip .t{font-weight:800;margin-bottom:6px}
+#tooltip .x{float:right;border:1px solid rgba(255,255,255,.18);background:transparent;color:#fff;border-radius:10px;padding:4px 8px}
+#tooltip .b{color:rgba(255,255,255,.78);font-size:13px;line-height:1.35}
+
+/* Version badge */
+#versionBadge{position:fixed;top:10px;right:10px;z-index:9999;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.65);backdrop-filter: blur(6px);color:#fff}
+
+</style>
+</head>
+<body>
+<div id="versionBadge">Phase 1 Fix 7</div>
+<div id="tooltip" style="display:none"></div>
+
+<div class="app" id="app">
+  <header>
+    <div class="brand" id="brand">Hold'em Coach Suite <small>Phase 1</small></div>
+    <div class="row">
+      <button class="iconbtn" data-action="open-help">?</button>
+      <button class="iconbtn" data-action="export-state">Export</button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <nav class="nav" id="nav">
+    <button data-tab="assess" class="active">Assess</button>
+    <button data-tab="review">Review</button>
+    <button data-tab="learn">Learn</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+</div>
+<div class="help-modal" id="helpModal">
+  <div class="sheet">
+    <div class="row space"><h3 style="margin:0">Glossary & Help</h3><button class="iconbtn" data-action="close-help">Close</button></div>
+    <p class="sub">Phase 1 keeps help simple while we build the play engine. Long-press the title to open diagnostics.</p>
+    <div class="list" id="glossaryList"></div>
+  </div>
+</div>
+<script>
+(() => {
+  const STORAGE_KEY = 'hcs_phase1_skeleton_v1';
+  const APP_VERSION = 'phase1-fix7-usable';
+  const state = {
+    ui: { tab: 'assess', showHelp:false, showDiagnostics:false, selectedSessionId:null },
+    settings: {
+      explainLevel: 'beginner',
+      defaultSilentHands: 500,
+      defaultLiveHands: 100,
+      coachingToggles: {
+        showGrade: true, showEstimatedEV: true, showBestAction: true, showEVDelta: true,
+        showSizingCompare: false, showReasoning: true, mistakesOnly: false
+      },
+      aiThinkMs: 180,
+      autoNextHandMs: 0,
+      quickMode: true
+    },
+    sessions: [],
+    currentSession: null,
+    diagnostics: { lastError:null, events:[], bootedAt: Date.now(), storage:'unknown' }
+  };
+
+  const glossary = [
+    ['BB (Big Blind)','Forced preflop bet posted by the big blind position.'],
+    ['BTN (Button)','Dealer position; strongest position because it acts last postflop.'],
+    ['EV (Estimated Value)','In this app, a model-based estimate of how good an action is against likely ranges. Not solver-precise.'],
+    ['Silent Assessment','Play with no feedback to capture your natural tendencies and leaks.'],
+    ['Live Coaching','Same play engine, but optional coaching overlays show model guidance in real time.']
+  ];
+
+  const SUITS = ['♠','♥','♦','♣'];
+  const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+  const POSITIONS_6MAX = ['BTN','SB','BB','UTG','HJ','CO']; // mapped relative to dealer seat
+  const AI_PROFILES = [
+    {name:'Nit', code:'NIT', preflopOpen:0.14, call:0.14, raise:0.06, flopAggro:0.22},
+    {name:'Station', code:'STA', preflopOpen:0.18, call:0.34, raise:0.05, flopAggro:0.16},
+    {name:'Spewy Aggro', code:'LAG', preflopOpen:0.28, call:0.18, raise:0.18, flopAggro:0.44},
+    {name:'Simple Reg', code:'REG', preflopOpen:0.22, call:0.19, raise:0.10, flopAggro:0.30}
+  ];
+
+  function logEvent(msg){
+    state.diagnostics.events.unshift({t:new Date().toLocaleTimeString(), msg});
+    state.diagnostics.events = state.diagnostics.events.slice(0, 40);
+  }
+
+  function safeSave(){
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        ui: { tab: state.ui.tab },
+        settings: state.settings,
+        sessions: state.sessions,
+      }));
+      state.diagnostics.storage = 'ok';
+      return true;
+    } catch (e) {
+      state.diagnostics.storage = 'fallback';
+      state.diagnostics.lastError = 'save:' + String(e.message || e);
+      return false;
+    }
+  }
+
+  function safeLoad(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw){ state.diagnostics.storage='ok'; return; }
+      const parsed = JSON.parse(raw);
+      if(parsed.settings) deepMerge(state.settings, parsed.settings);
+      if(Array.isArray(parsed.sessions)) state.sessions = parsed.sessions;
+      if(parsed.ui?.tab) state.ui.tab = parsed.ui.tab;
+      state.diagnostics.storage='ok';
+    } catch (e) {
+      state.diagnostics.storage='fallback';
+      state.diagnostics.lastError = 'load:' + String(e.message || e);
+    }
+  }
+
+  function deepMerge(target, src){
+    for(const k in src){
+      if(src[k] && typeof src[k]==='object' && !Array.isArray(src[k])){
+        if(!target[k] || typeof target[k] !== 'object') target[k] = {};
+        deepMerge(target[k], src[k]);
+      } else target[k] = src[k];
+    }
+  }
+
+  function fmtChips(n){ return Math.round(n).toLocaleString(); }
+  function clamp(n,a,b){ return Math.max(a, Math.min(b,n)); }
+  function rand(min=0,max=1){ return Math.random()*(max-min)+min; }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function uid(p='id'){ return p + '_' + Math.random().toString(36).slice(2,9); }
+
+  function createSession(mode='silent', handTarget=500){
+    const s = {
+      id: uid('sess'), mode, handTarget, startedAt: Date.now(), endedAt:null,
+      status:'active',
+      ui: { showHandResult:false, handResultStep:0, autoNextTimer:null },
+      metrics: { handsPlayed:0, decisionsFaced:0, decisionsGraded:0, minutesPlayed:0, heroVPIP:0, heroPFR:0, folds:0, calls:0, raises:0 },
+      logs: [], // compact per hand summary
+      highlights: [], // more detail for notable spots
+      table: null,
+    };
+    state.currentSession = s;
+    logEvent(`Started ${mode} session (${handTarget} hands)`);
+    // Live Coaching should not auto-fast-fold; keep hands interactive.
+    if(mode==='live'){ state.settings.quickMode = false; }
+    startNextHand();
+    persistCurrentSessionSnapshot();
+    render();
+  }
+
+  function persistCurrentSessionSnapshot(){
+    // keep current session in state only; when ended push to sessions.
+    safeSave();
+  }
+
+  function finishSession(){
+    const s = state.currentSession; if(!s) return;
+    s.status = 'complete'; s.endedAt = Date.now();
+    s.metrics.minutesPlayed = Math.max(1, Math.round((s.endedAt - s.startedAt)/60000));
+    const report = generateSessionReport(s);
+    s.report = report;
+    state.sessions.unshift(compactPersistSession(s));
+    state.sessions = consolidateSessions(state.sessions);
+    state.ui.selectedSessionId = s.id;
+    state.currentSession = null;
+    logEvent(`Finished session ${s.id} (${s.metrics.handsPlayed} hands)`);
+    safeSave();
+    state.ui.tab = 'review';
+    render();
+  }
+
+  function compactPersistSession(s){
+    // Keep details for recent sessions; this is compact now but includes enough for replay stubs.
+    return JSON.parse(JSON.stringify(s));
+  }
+
+  function consolidateSessions(list){
+    // v1 simple cap: keep full details for 10 most recent complete sessions, summarize older sessions.
+    const recent = [];
+    const older = [];
+    for(const x of list){ (recent.length < 10 ? recent : older).push(x); }
+    const summaries = older.map(x => ({
+      id:x.id, mode:x.mode, status:x.status, startedAt:x.startedAt, endedAt:x.endedAt,
+      metrics:x.metrics, report:x.report, summaryOnly:true, highlights:(x.highlights||[]).slice(0,2), logsCount:(x.logs||[]).length
+    }));
+    return [...recent, ...summaries];
+  }
+
+  function generateSessionReport(s){
+    const m = s.metrics;
+    const totalActions = Math.max(1, m.folds + m.calls + m.raises);
+    const vpip = Math.round((m.heroVPIP / Math.max(1,m.handsPlayed))*100);
+    const pfr = Math.round((m.heroPFR / Math.max(1,m.handsPlayed))*100);
+    const agg = Math.round((m.raises / totalActions)*100);
+    const leakFlags = [];
+    if(vpip > 40) leakFlags.push('Playing too many hands preflop (VPIP high)');
+    if(vpip < 12) leakFlags.push('Possibly overfolding preflop (VPIP low)');
+    if(pfr < Math.max(5, vpip - 18)) leakFlags.push('Calling too much vs raising (PFR gap wide)');
+    if(agg < 18) leakFlags.push('Passive action mix (low raise frequency)');
+    if(agg > 55) leakFlags.push('Potential over-aggression in current sample');
+    const scoreBase = 65 + (pfr > 10 && pfr < 28 ? 8 : -5) + (vpip >= 16 && vpip <= 32 ? 10 : -8) + (agg >= 20 && agg <= 45 ? 7 : -6);
+    const confidence = clamp(Math.round((m.handsPlayed / s.handTarget) * 100), 10, 100);
+    const score = clamp(scoreBase, 20, 95);
+    let grade = 'C'; if(score>=90) grade='A'; else if(score>=80) grade='B'; else if(score>=70) grade='C+'; else if(score>=60) grade='C'; else if(score>=50) grade='D'; else grade='F';
+    return { score, grade, vpip, pfr, agg, confidence, leakFlags: leakFlags.slice(0,4) };
+  }
+
+  function buildDeck(){
+    const d=[]; for(const r of RANKS) for(const s of SUITS) d.push(r+s); return shuffle(d);
+  }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  function newTableState(){
+    const dealer = state.currentSession?.table ? (state.currentSession.table.dealerSeat + 1) % 6 : 0;
+    const blindLevel = state.currentSession ? Math.max(1, Math.floor(state.currentSession.metrics.handsPlayed / 10) + 1) : 1;
+    const sbAmt = 50 * blindLevel;
+    const bbAmt = 100 * blindLevel;
+    const anteAmt = blindLevel >= 3 ? 10 * blindLevel : 0;
+    const deck = buildDeck();
+    const seats = [];
+    for(let i=0;i<6;i++){
+      const isHero = i===0;
+      const profile = isHero ? null : pick(AI_PROFILES);
+      const priorStack = state.currentSession?.table?.seats?.[i]?.stack;
+      let stack = typeof priorStack === 'number' ? priorStack : 10000;
+      if(stack <= 0) stack = 10000; // reset busted seat for skeleton
+      seats.push({
+        seat:i,
+        name:isHero ? 'Hero' : `Bot ${i}`,
+        isHero,
+        profile,
+        stack,
+        cards:[deck.pop(), deck.pop()],
+        inHand: stack > 0,
+        folded:false,
+        allIn:false,
+        invested:0,
+        actedThisStreet:false,
+        position: null,
+        handScoreSeed: null,
+      });
+    }
+    // assign positions relative to dealer
+    for(let i=0;i<6;i++){
+      const rel = (i - dealer + 6) % 6;
+      seats[i].position = POSITIONS_6MAX[rel];
+    }
+    const t = {
+      handId: uid('hand'), dealerSeat: dealer, sbAmt, bbAmt, anteAmt,
+      street:'preflop',
+      deck,
+      board:[],
+      pot:0,
+      toActSeat:null,
+      lastAggressorSeat:null,
+      currentBet:0,
+      actionLog:[],
+      phase:'betting',
+      handComplete:false,
+      showdown:false,
+      winnerSeats:[],
+      heroDecisionPending:false,
+      heroTurnPrompt:null,
+      raisePresets:[2.2,2.8,3.5],
+      minRaiseTo: bbAmt*2,
+    };
+    postAntesAndBlinds(t);
+    setNextToActPreflop(t);
+    return t;
+  }
+
+  function postAntesAndBlinds(t){
+    const seats = t.seats = state.currentSession ? [] : []; // placeholder overwritten below
+  }
+
+  function getTable(){ return state.currentSession?.table; }
+
+  function startNextHand(){
+    const s = state.currentSession; if(!s) return;
+    if(s.metrics.handsPlayed >= s.handTarget){ finishSession(); return; }
+    // Build fresh table state, carrying stacks from previous hand if available.
+    const prev = s.table;
+    const dealer = prev ? (prev.dealerSeat + 1) % 6 : 0;
+    const blindLevel = Math.max(1, Math.floor(s.metrics.handsPlayed / 10) + 1);
+    const sbAmt = 50 * blindLevel;
+    const bbAmt = 100 * blindLevel;
+    const anteAmt = blindLevel >= 3 ? 10 * blindLevel : 0;
+    const deck = buildDeck();
+    const seats=[];
+    for(let i=0;i<6;i++){
+      const isHero = i===0;
+      const profile = isHero ? null : (prev?.seats?.[i]?.profile || pick(AI_PROFILES));
+      let stack = prev?.seats?.[i]?.stack;
+      if(typeof stack !== 'number' || stack <= 0) stack = 10000;
+      seats.push({ seat:i, name:isHero?'Hero':`Bot ${i}`, isHero, profile, stack, cards:[deck.pop(),deck.pop()], inHand:stack>0, folded:false, allIn:false, invested:0, actedThisStreet:false, position:null, handScoreSeed:null });
+    }
+    for(let i=0;i<6;i++){ seats[i].position = POSITIONS_6MAX[(i - dealer + 6)%6]; }
+    const t = { handId:uid('hand'), dealerSeat:dealer, sbAmt, bbAmt, anteAmt, street:'preflop', deck, board:[], pot:0, currentBet:0, toActSeat:null, lastAggressorSeat:null, actionLog:[], handComplete:false, showdown:false, winnerSeats:[], heroDecisionPending:false, heroTurnPrompt:null, raisePresets:[2.2,2.8,3.5], minRaiseTo: bbAmt*2, aiTimer:null, seats:[] };
+    s.table = t;
+
+    // Attach seats immediately (many functions/renderers assume t.seats exists)
+    t.seats = seats;
+
+    // post antes
+    seats.forEach(seat => {
+      if(!seat.inHand || t.anteAmt<=0) return;
+      const amt = Math.min(seat.stack, t.anteAmt);
+      seat.stack -= amt; seat.invested += amt; t.pot += amt; if(seat.stack===0) seat.allIn=true;
+      t.actionLog.push(`${seat.name} posts ante ${amt}`);
+    });
+    // blinds by position labels on this hand
+    const sbSeat = seats.find(x=>x.position==='SB');
+    const bbSeat = seats.find(x=>x.position==='BB');
+    if(sbSeat){ const amt=Math.min(sbSeat.stack,t.sbAmt); sbSeat.stack-=amt; sbSeat.invested+=amt; t.pot+=amt; t.currentBet=Math.max(t.currentBet,amt); if(sbSeat.stack===0) sbSeat.allIn=true; t.actionLog.push(`${sbSeat.name} posts SB ${amt}`); }
+    if(bbSeat){ const amt=Math.min(bbSeat.stack,t.bbAmt); bbSeat.stack-=amt; bbSeat.invested+=amt; t.pot+=amt; t.currentBet=Math.max(t.currentBet,amt); if(bbSeat.stack===0) bbSeat.allIn=true; t.actionLog.push(`${bbSeat.name} posts BB ${amt}`); }
+    // preflop action starts UTG
+    const order = actionOrder(t);
+    t.toActSeat = order.find(seatIdx => canAct(seats[seatIdx], t));
+    t.minRaiseTo = Math.max(t.bbAmt*2, t.currentBet + t.bbAmt);
+    logEvent(`Hand ${s.metrics.handsPlayed+1} started (${t.handId})`);
+    runUntilHeroOrDone();
+  }
+
+  function actionOrder(t){
+    // Order each street by positions relative to dealer. Preflop starts UTG; postflop starts SB.
+    const seats = t.seats || state.currentSession?.table?.seats || [];
+    if(t.street==='preflop'){
+      const prefPos = ['UTG','HJ','CO','BTN','SB','BB'];
+      return prefPos.map(p => seats.find(s=>s.position===p)?.seat).filter(x=>x!==undefined);
+    }
+    const postPos = ['SB','BB','UTG','HJ','CO','BTN'];
+    return postPos.map(p => seats.find(s=>s.position===p)?.seat).filter(x=>x!==undefined);
+  }
+
+  function canAct(seat, t){
+    return seat && seat.inHand && !seat.folded && !seat.allIn;
+  }
+
+  function amountToCall(seat, t){ return Math.max(0, t.currentBet - seat.invested); }
+
+  function runUntilHeroOrDone(){
+    const s = state.currentSession; if(!s || !s.table) return;
+    const t = s.table;
+    clearTimeout(t.aiTimer);
+    let guard = 0;
+    while(!t.handComplete && guard++ < 200){
+      maybeFinishStreetOrHand();
+      if(t.handComplete) break;
+      const seat = t.seats[t.toActSeat];
+      if(!seat || !canAct(seat,t)) { advanceToNextActor(); continue; }
+      if(seat.isHero){
+        t.heroDecisionPending = true;
+        t.heroTurnPrompt = buildHeroPrompt();
+        render();
+        return;
+      }
+      // let AI act async for perceived flow
+      t.heroDecisionPending = false;
+      t.aiTimer = setTimeout(() => { aiAct(seat); runUntilHeroOrDone(); }, state.settings.aiThinkMs);
+      render();
+      return;
+    }
+    if(guard >= 200){
+      state.diagnostics.lastError = 'Guard break in runUntilHeroOrDone';
+      logEvent('Guard break in run loop');
+      render();
+    }
+  }
+
+  function buildHeroPrompt(){
+    const t = getTable(); const hero = t.seats[0];
+    const toCall = amountToCall(hero, t);
+    const potOdds = toCall > 0 ? (toCall / (t.pot + toCall)) : 0;
+    return { toCall, minRaiseTo: t.minRaiseTo, potOdds };
+  }
+
+  function heroAct(kind, payload){
+    const t = getTable(); if(!t || !t.heroDecisionPending) return;
+    const hero = t.seats[0];
+    applyAction(hero, kind, payload);
+    // coarse coaching (phase1 stub only)
+    if(state.currentSession.mode === 'live') maybeLogLiveCoachingStub(hero, kind);
+    t.heroDecisionPending = false;
+    runUntilHeroOrDone();
+  }
+
+  function maybeLogLiveCoachingStub(hero, kind){
+    const s = state.currentSession; const t = s.table;
+    if(state.settings.coachingToggles.mistakesOnly && Math.random() > 0.25) return;
+
+    // Phase 1 stub: coherent (but not solver-precise) coaching signals so UI toggles are testable.
+    const grade = pick(['Good','Okay','Mistake']);
+    const estBest = pick(['fold','call','raise']);
+    const ev = (Math.random()*1.6 - 0.4).toFixed(2);
+    const bestEv = (Number(ev) + (grade==='Mistake'?rand(0.2,0.7):rand(-0.05,0.15))).toFixed(2);
+    const delta = (bestEv - ev).toFixed(2);
+
+    const coach = {
+      at: Date.now(),
+      street: t.street,
+      action: kind,
+      grade,
+      estEV: Number(ev),
+      bestAction: estBest,
+      bestEV: Number(bestEv),
+      deltaEV: Number(delta),
+      reasoningBeginner: 'This is feedback on the decision you just made. The numbers are estimates based on the bot type, betting, and board. Use it to learn patterns, not exact math.',
+      reasoningAdvanced: 'Phase 1 coaching estimates EV using simple heuristics (profile + sizing + street). Not solver-precise; use ΔEV directionally.',
+      reasoning: 'Phase 1 coaching estimates EV; not solver-precise.'
+    };
+    s.ui = s.ui || {};
+    s.ui.lastCoach = coach;
+
+    const parts = [];
+    if(state.settings.coachingToggles.showGrade) parts.push(`Coach Grade: ${grade}`);
+    if(state.settings.coachingToggles.showEstimatedEV) parts.push(`Estimated EV ${ev}`);
+    if(state.settings.coachingToggles.showBestAction) parts.push(`Best model action: ${estBest}`);
+    if(state.settings.coachingToggles.showEVDelta) parts.push(`ΔEV ${delta}`);
+    if(state.settings.coachingToggles.showReasoning) parts.push('Reason: stub coaching (Phase 1).');
+
+    t.actionLog.push(`[COACH] ${parts.join(' | ')}`);
+  }
+
+  function aiAct(seat){
+    const t = getTable(); if(!t || t.handComplete) return;
+    const profile = seat.profile || AI_PROFILES[3];
+    const toCall = amountToCall(seat, t);
+    const canCheck = toCall === 0;
+    const stackBB = seat.stack / Math.max(1,t.bbAmt);
+    // heuristic stub: random but profile-influenced
+    let r = Math.random();
+    if(stackBB < 8 && r < 0.2 + profile.raise){
+      return applyAction(seat, 'raise', {toAmount: seat.invested + seat.stack}); // jam
+    }
+    if(canCheck){
+      if(r < profile.flopAggro && seat.stack > t.bbAmt) {
+        const sz = t.street==='preflop' ? Math.max(t.minRaiseTo, t.currentBet + t.bbAmt*2) : Math.max(t.bbAmt, Math.round(t.pot*0.5));
+        return applyAction(seat, 'raise', {toAmount: seat.invested + Math.min(seat.stack, sz)});
+      }
+      return applyAction(seat, 'check');
+    }
+    if(r < profile.raise && seat.stack > toCall + t.bbAmt) {
+      const raiseBy = Math.max(t.bbAmt, Math.round((t.street==='preflop'?2.2:0.6) * Math.max(t.bbAmt,t.pot)));
+      return applyAction(seat, 'raise', {toAmount: t.currentBet + raiseBy});
+    }
+    if(r < profile.raise + profile.call) return applyAction(seat, 'call');
+    return applyAction(seat, 'fold');
+  }
+
+  function applyAction(seat, kind, payload={}){
+    const t = getTable(); const s = state.currentSession; if(!t || !s) return;
+    const toCall = amountToCall(seat, t);
+    let actionText = '';
+    if(kind === 'fold'){
+      seat.folded = true; actionText = `${seat.name} folds`;
+      if(seat.isHero){ s.metrics.folds++; }
+    } else if(kind === 'check'){
+      actionText = `${seat.name} checks`;
+    } else if(kind === 'call'){
+      const amt = Math.min(seat.stack, toCall);
+      seat.stack -= amt; seat.invested += amt; t.pot += amt; if(seat.stack===0) seat.allIn = true;
+      actionText = `${seat.name} calls ${amt}`;
+      if(seat.isHero){ s.metrics.calls++; if(amt>0) s.metrics.heroVPIP++; }
+    } else if(kind === 'raise'){
+      let toAmount = payload.toAmount;
+      if(typeof toAmount !== 'number' || !isFinite(toAmount)) toAmount = t.minRaiseTo;
+      toAmount = Math.max(toAmount, t.currentBet + Math.max(t.bbAmt, t.currentBet===0?t.bbAmt:0));
+      const targetInvest = Math.max(seat.invested, Math.round(toAmount));
+      const amt = Math.min(seat.stack, targetInvest - seat.invested);
+      seat.stack -= amt; seat.invested += amt; t.pot += amt; if(seat.stack===0) seat.allIn = true;
+      if(seat.invested > t.currentBet){
+        t.currentBet = seat.invested;
+        t.lastAggressorSeat = seat.seat;
+        t.minRaiseTo = t.currentBet + Math.max(t.bbAmt, Math.round((t.currentBet||t.bbAmt)*0.5));
+      }
+      actionText = `${seat.name} ${toCall===0?'bets/raises':'raises'} to ${seat.invested}`;
+      // reset acted flags for others because betting reopened
+      t.seats.forEach(x => { if(x.seat !== seat.seat && canAct(x,t)) x.actedThisStreet = false; });
+      if(seat.isHero){ s.metrics.raises++; s.metrics.heroVPIP++; if(t.street==='preflop') s.metrics.heroPFR++; }
+    }
+    seat.actedThisStreet = true;
+    t.actionLog.push(actionText);
+    if(seat.isHero){ s.metrics.decisionsFaced++; s.metrics.decisionsGraded++; }
+    advanceToNextActor();
+  }
+
+  function advanceToNextActor(){
+    const t = getTable(); if(!t) return;
+    const order = actionOrder(t);
+    const currentIdx = order.indexOf(t.toActSeat);
+    for(let step=1; step<=order.length; step++){
+      const nextSeat = order[(Math.max(currentIdx, -1)+step) % order.length];
+      const seatObj = t.seats[nextSeat];
+      if(canAct(seatObj,t)){ t.toActSeat = nextSeat; return; }
+    }
+    t.toActSeat = null;
+  }
+
+  function activeUnfoldedSeats(){
+    const t = getTable(); if(!t) return [];
+    return t.seats.filter(x => x.inHand && !x.folded);
+  }
+
+  function streetReadyToClose(){
+    const t = getTable(); if(!t) return false;
+    const alive = activeUnfoldedSeats();
+    if(alive.length <= 1) return true;
+    // all non-allin players have acted and matched current bet
+    return alive.every(seat => seat.allIn || (seat.actedThisStreet && seat.invested === t.currentBet));
+  }
+
+  function maybeFinishStreetOrHand(){
+    const t = getTable(); const s = state.currentSession; if(!t || !s || t.handComplete) return;
+    const alive = activeUnfoldedSeats();
+    if(alive.length <= 1){
+      const winner = alive[0] || t.seats.find(x=>x.inHand && !x.folded) || t.seats[0];
+      winner.stack += t.pot;
+      t.winnerSeats = [winner.seat]; t.handComplete = true; t.showdown = false;
+      t.actionLog.push(`${winner.name} wins ${t.pot} (everyone folded)`);
+      finalizeHandSummary();
+      return;
+    }
+    if(!streetReadyToClose()) return;
+
+    if(t.street === 'river'){
+      resolveShowdown();
+      finalizeHandSummary();
+      return;
+    }
+
+    // move to next street
+    if(t.street === 'preflop') { t.street='flop'; t.board.push(t.deck.pop(), t.deck.pop(), t.deck.pop()); }
+    else if(t.street === 'flop') { t.street='turn'; t.board.push(t.deck.pop()); }
+    else if(t.street === 'turn') { t.street='river'; t.board.push(t.deck.pop()); }
+    t.currentBet = 0;
+    t.seats.forEach(seat => { seat.invested = 0; if(canAct(seat,t)) seat.actedThisStreet = false; });
+    const order = actionOrder(t);
+    t.toActSeat = order.find(si => canAct(t.seats[si], t));
+    t.minRaiseTo = t.bbAmt;
+    t.actionLog.push(`— ${t.street.toUpperCase()} —`);
+  }
+
+  function resolveShowdown(){
+    const t = getTable();
+    const contenders = activeUnfoldedSeats();
+    contenders.forEach(seat => { if(seat.handScoreSeed == null) seat.handScoreSeed = score7(seat.cards.concat(t.board)); });
+    const best = Math.max(...contenders.map(x => x.handScoreSeed));
+    const winners = contenders.filter(x => x.handScoreSeed === best);
+    const share = Math.floor(t.pot / winners.length);
+    let remainder = t.pot - share * winners.length;
+    winners.forEach(w => { w.stack += share + (remainder>0 ? 1:0); if(remainder>0) remainder--; });
+    t.winnerSeats = winners.map(w=>w.seat); t.handComplete = true; t.showdown = true;
+    t.actionLog.push(`Showdown: ${winners.map(w=>w.name).join(', ')} win ${share}${winners.length>1?' each':''}`);
+  }
+
+  function score7(cards){
+    // Simplified hand strength stub (not real evaluator): rank buckets + pair/trips detection bias
+    const ranks = cards.map(c => c[0]);
+    const suits = cards.map(c => c[1]);
+    const countR = {}; ranks.forEach(r=>countR[r]=(countR[r]||0)+1);
+    const countS = {}; suits.forEach(s=>countS[s]=(countS[s]||0)+1);
+    const vals = Object.values(countR).sort((a,b)=>b-a);
+    const rankNums = ranks.map(r => RANKS.indexOf(r)).sort((a,b)=>b-a);
+    const highSum = rankNums.slice(0,5).reduce((a,b)=>a+b,0);
+    const flush = Object.values(countS).some(v => v>=5);
+    let score = highSum;
+    if(vals[0]===4) score += 900;
+    else if(vals[0]===3 && vals[1]>=2) score += 800;
+    else if(flush) score += 700;
+    else if(vals[0]===3) score += 600;
+    else if(vals[0]===2 && vals[1]===2) score += 500;
+    else if(vals[0]===2) score += 400;
+    // straight-ish bonus (very rough)
+    const unique = [...new Set(rankNums)];
+    for(let i=0;i<unique.length-4;i++){ if(unique[i]-unique[i+4]===4) score += 650; }
+    if(unique.includes(12)&&unique.includes(3)&&unique.includes(2)&&unique.includes(1)&&unique.includes(0)) score += 650;
+    return score;
+  }
+
+  function finalizeHandSummary(){
+    const s = state.currentSession; const t = getTable(); if(!s || !t) return;
+    s.metrics.handsPlayed++;
+    const hero = t.seats[0];
+    const summary = {
+      handId:t.handId, n:s.metrics.handsPlayed, mode:s.mode, startedAt:Date.now(),
+      result: t.winnerSeats.includes(0) ? 'win' : (hero.folded ? 'fold' : 'loss'),
+      streetEnd: t.showdown ? 'showdown' : t.street,
+      heroCards: hero.cards, board: t.board.slice(),
+      pot: t.pot, winnerSeats:t.winnerSeats.slice(),
+      actions: t.actionLog.slice(-12),
+      heroStack: hero.stack,
+      blindLevel: {sb:t.sbAmt, bb:t.bbAmt, ante:t.anteAmt}
+    };
+    s.logs.push(summary);
+    if(s.logs.length > 220) s.logs = s.logs.slice(-220);
+
+    // basic highlights
+    if(summary.result === 'loss' && summary.streetEnd === 'showdown' && summary.pot >= t.bbAmt*8){
+      s.highlights.unshift({type:'big_showdown_loss', handId:t.handId, note:'Large pot showdown loss', pot:t.pot, n:summary.n, board:summary.board, heroCards:summary.heroCards});
+    } else if(summary.result === 'win' && t.winnerSeats.length===1 && summary.pot >= t.bbAmt*8){
+      s.highlights.unshift({type:'big_pot_win', handId:t.handId, note:'Large pot win', pot:t.pot, n:summary.n, board:summary.board, heroCards:summary.heroCards});
+    }
+    s.highlights = s.highlights.slice(0,50);
+
+    // expose last hand for UI overlay + replay
+    s.lastHand = {
+      summary,
+      showdown: t.showdown,
+      seats: t.seats.map(seat => ({
+        seat: seat.seat, name: seat.name, isHero: seat.isHero,
+        profile: seat.profile, position: seat.position,
+        folded: seat.folded, inHand: seat.inHand,
+        cards: seat.cards, stack: seat.stack
+      })),
+      board: t.board.slice(),
+      pot: t.pot,
+      actionLog: t.actionLog.slice()
+    };
+    s.ui = s.ui || {};
+    s.ui.showHandResult = true;
+    s.ui.handResultStep = 0;
+
+    clearTimeout(s.ui.autoNextTimer);
+    // Optional auto-advance: off by default. If enabled, still leave a moment for reveal.
+    const delay = Number(state.settings.autoNextHandMs || 0);
+    if(delay > 0){
+      const extra = t.showdown ? 1400 : 600;
+      s.ui.autoNextTimer = setTimeout(() => {
+        if(state.currentSession && state.currentSession.id === s.id && state.currentSession.ui?.showHandResult){
+          advanceFromHandResult();
+        }
+      }, delay + extra);
+    }
+
+    logEvent(`Hand ${summary.n} complete (${summary.result})`);
+    safeSave();
+    render();
+  }
+
+  
+  function advanceFromHandResult(){
+    const s = state.currentSession; if(!s || !s.table) return;
+    s.ui = s.ui || {};
+    s.ui.showHandResult = false;
+    s.ui.handResultStep = 0;
+    clearTimeout(s.ui.autoNextTimer);
+    // if target reached, finish session
+    if(s.metrics.handsPlayed >= s.handTarget){ finishSession(); return; }
+    startNextHand();
+    persistCurrentSessionSnapshot();
+    render();
+  }
+
+  function cycleHandResultStep(){
+    const s = state.currentSession; if(!s) return;
+    s.ui.handResultStep = Math.min(2, (s.ui.handResultStep||0) + 1);
+    safeSave(); render();
+  }
+function render(){
+    try {
+      document.querySelectorAll('#nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.tab===state.ui.tab));
+      const main = document.getElementById('main');
+      main.innerHTML = '';
+      if(state.ui.tab === 'assess') main.appendChild(renderAssess());
+      else if(state.ui.tab === 'review') main.appendChild(renderReview());
+      else if(state.ui.tab === 'learn') main.appendChild(renderLearn());
+      else if(state.ui.tab === 'settings') main.appendChild(renderSettings());
+      renderHelp();
+    } catch(e){
+      state.diagnostics.lastError = String(e.stack || e);
+      const main = document.getElementById('main');
+      main.innerHTML = `<div class="card"><h3 class="title">Render Error</h3><div class="notice small mono">${escapeHtml(state.diagnostics.lastError)}</div><div class="spacer"></div><div class="row"><button class="btn" data-tab="assess">Back to Assess</button><button class="btn" data-action="toggle-diagnostics">Diagnostics</button></div></div>`;
+    }
+  }
+
+  function renderAssess(){
+    const wrap = document.createElement('div');
+    wrap.className = 'list';
+    const sess = state.currentSession;
+
+    if(!sess){
+      wrap.appendChild(htmlCard('Assess', `Start a <b>Silent Assessment</b> (true grading, no feedback) or a <b>Live Coaching</b> session (same play engine, coaching overlays on).`, `
+        <div class="grid2">
+          <button class="btn primary" data-action="start-session" data-mode="silent">Start Silent (500)</button>
+          <button class="btn good" data-action="start-session" data-mode="live">Start Live Coaching</button>
+        </div>
+        <div class="spacer"></div>
+        <div class="row small muted">Quick lengths:</div>
+        <div class="row">
+          <button class="btn small" data-action="start-session" data-mode="silent" data-hands="100">Silent 100</button>
+          <button class="btn small" data-action="start-session" data-mode="silent" data-hands="200">Silent 200</button>
+          <button class="btn small" data-action="start-session" data-mode="silent" data-hands="500">Silent 500</button>
+          <button class="btn small" data-action="start-session" data-mode="live" data-hands="100">Live 100</button>
+        </div>
+      `));
+      const latest = state.sessions[0];
+      wrap.appendChild(htmlCard('Latest Summary', latest ? latestSummaryHtml(latest) : '<div class="sub">No sessions yet. Start with a silent baseline.</div>'));
+      wrap.appendChild(renderDiagnosticsSnippet());
+      return wrap;
+    }
+
+    // Active session UI
+    wrap.appendChild(htmlCard(
+      `${sess.mode === 'silent' ? 'Silent Assessment' : 'Live Coaching'} — In Progress`,
+      `<div class="row"><span class="pill ${sess.mode==='silent'?'warn':'ok'}">${sess.mode==='silent'?'Silent':'Live Coaching'}</span><span class="pill">Target ${sess.handTarget} hands</span></div>`,
+      `
+        <div class="kpi" style="margin-top:8px">
+          <div class="box"><div class="n">${sess.metrics.handsPlayed}</div><div class="l">Hands Played</div></div>
+          <div class="box"><div class="n">${sess.handTarget - sess.metrics.handsPlayed}</div><div class="l">Remaining</div></div>
+          <div class="box"><div class="n">${sess.metrics.decisionsFaced}</div><div class="l">Hero Decisions</div></div>
+          <div class="box"><div class="n">${Math.round((sess.metrics.handsPlayed/Math.max(1,sess.handTarget))*100)}%</div><div class="l">Progress</div></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn warn" data-action="end-session-now">End Session & Review</button>
+          <button class="btn" data-action="force-next-hand">Skip to Next Hand</button>
+        </div>
+      `
+    ));
+    wrap.appendChild(renderTableCard(sess));
+    wrap.appendChild(renderActionPanel(sess));
+    wrap.appendChild(renderDiagnosticsSnippet());
+    return wrap;
+  }
+
+  function renderTableCard(sess){
+    const t = sess.table;
+    const c = document.createElement('div');
+    c.className = 'card';
+    let boardHtml = '';
+    if(t.board.length===0) boardHtml = '<div class="cardbox back">?</div><div class="cardbox back">?</div><div class="cardbox back">?</div><div class="cardbox back">?</div><div class="cardbox back">?</div>';
+    else {
+      const shown = [...t.board, ...Array(5-t.board.length).fill(null)].map(x => x ? `<div class="cardbox">${x}</div>` : `<div class="cardbox back">?</div>`).join('');
+      boardHtml = shown;
+    }
+    let overlayHtml='';
+    if(sess.ui?.showHandResult){ overlayHtml = renderHandResultOverlay(sess); }
+    const seatsOrdered = [...t.seats].sort((a,b)=> seatDisplayOrder(a.seat)-seatDisplayOrder(b.seat));
+    c.innerHTML = `
+      <h3 class="title">Table — Hand ${sess.metrics.handsPlayed + 1} / ${sess.handTarget}</h3>
+      <div class="table-wrap">
+        <div class="table-meta">
+          <div class="meta-box"><div class="v">${t.street.toUpperCase()}</div><div class="k">Street</div></div>
+          <div class="meta-box"><div class="v">${fmtChips(t.pot)}</div><div class="k">Pot</div></div>
+          <div class="meta-box"><div class="v">${t.sbAmt}/${t.bbAmt}${t.anteAmt?` + ${t.anteAmt}`:''}</div><div class="k">Blinds / Ante</div></div>
+        </div>
+        <div class="board">${boardHtml}</div>
+        <div class="seats">${seatsOrdered.map(seat => renderSeatHtml(t,seat)).join('')}</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="row space"><div class="sub">Recent hand log</div><div class="sub">${t.handId}</div></div>
+      <div class="log">${t.actionLog.slice(-12).map(x=>`<div>${escapeHtml(x)}</div>`).join('')}</div>
+    ${overlayHtml}
+    `;
+    return c;
+  }
+
+  
+
+  function renderHandResultOverlay(sess){
+    const s = sess;
+    const t = s.table;
+    const ui = s.ui || {};
+    const last = s.lastHand;
+    if(!last) return '';
+    const step = ui.handResultStep || 0;
+    const isShowdown = last.showdown;
+    const title = isShowdown ? 'Showdown' : 'Hand Complete';
+    const hero = last.seats.find(x=>x.isHero) || last.seats[0];
+    const result = last.summary.result;
+    const resTxt = result === 'win' ? 'You win' : (result === 'fold' ? 'You folded' : 'You lose');
+
+    const board = (last.board||[]).map((c,i)=> `<div class="cardbox ${step>=1?'flip':''}" style="animation-delay:${i*90}ms">${cardHtml(c)}</div>`).join('');
+    const boardBack = '<div class="cardbox back">?</div>'.repeat(5);
+    const boardHtml = step>=1 ? board : boardBack;
+
+    const showdownPlayers = last.seats.filter(p => p.inHand && !p.folded);
+    const playerHtml = (isShowdown && step>=2) ? showdownPlayers.map((p,idx)=>{
+      const cards = (p.cards||[]).map((c,i)=> `<div class="cardbox flip" style="animation-delay:${(idx*2+i)*110}ms">${cardHtml(c)}</div>`).join('');
+      return `<div class="pl">
+        <div class="left">
+          <div class="name">${escapeHtml(p.name)} ${p.isHero?'<span class="pill ok">Hero</span>':''}</div>
+          <div class="meta">${escapeHtml(p.position||'')} ${p.profile?('• '+escapeHtml(p.profile.name)) : ''}</div>
+        </div>
+        <div class="cards">${cards}</div>
+      </div>`;
+    }).join('') : (!isShowdown ? '' : `<div class="sub">Tap <b>Reveal hands</b> to see hole cards.</div>`);
+
+    const revealBtn = isShowdown ? (step<1 ? 'Reveal board' : (step<2 ? 'Reveal hands' : 'Next hand')) : 'Next hand';
+    const revealAction = isShowdown ? (step<2 ? 'hand-reveal-step' : 'hand-next') : 'hand-next';
+
+    return `
+      <div class="overlay" role="dialog" aria-modal="true">
+        <div class="panel">
+          <div class="row space">
+            <h3 class="title" style="margin:0">${title}</h3>
+            <span class="pill ${result==='win'?'ok':(result==='loss'?'warn':'')}">${resTxt}</span>
+          </div>
+          <div class="sub">Pot: <b>${fmtChips(last.pot)}</b> • Hand ${last.summary.n}</div>
+          <div class="cards">${boardHtml}</div>
+          ${playerHtml ? `<div class="players">${playerHtml}</div>` : ''}
+          <div class="rowbtn">
+            <button class="btn primary" data-action="${revealAction}">${revealBtn}</button>
+            <button class="btn" data-action="hand-close">Close</button>
+          </div>
+          <div class="sub muted" style="margin-top:8px">Tip: In poker, folded hands are usually not shown. This view shows only hands that reached showdown.</div>
+        </div>
+      </div>
+    `;
+  }
+function seatDisplayOrder(seat){ return [2,3,4,5,1,0].indexOf(seat); }
+
+  function renderSeatHtml(t, seat){
+    const classes = ['seat']; if(seat.isHero) classes.push('hero'); if(seat.folded) classes.push('folded');
+    const isToAct = t.toActSeat === seat.seat && !t.handComplete;
+    const badges = [];
+    badges.push(`<span class="tag">${seat.position}</span>`);
+    if(isToAct) badges.push(`<span class="tag" style="color:#bfe0ff;border-color:#37689b">Acting</span>`);
+    if(seat.allIn) badges.push(`<span class="tag" style="color:#ffd9a7;border-color:#7a5b2f">All-in</span>`);
+    if(seat.profile) badges.push(`<span class="tag">${seat.profile.code}</span>`);
+    const heroCards = seat.isHero ? `<div class="hero-cards">${seat.cards.map(c=>`<div class="cardbox">${cardHtml(c)}</div>`).join('')}</div>` : `<div class="hero-cards">${seat.folded?'':`<div class="cardbox back">?</div><div class="cardbox back">?</div>`}</div>`;
+    return `
+      <div class="${classes.join(' ')}">
+        <div class="top">
+          <div class="name">${seat.name}</div>
+          <div class="stack">${fmtChips(seat.stack)}</div>
+        </div>
+        <div class="tags">${badges.join('')}</div>
+        ${heroCards}
+      </div>
+    `;
+  }
+
+  function renderActionPanel(sess){
+    const t = sess.table;
+    const c = document.createElement('div'); c.className='card';
+    if(sess.ui?.showHandResult){
+      const step = sess.ui.handResultStep||0;
+      const isShowdown = sess.lastHand?.showdown;
+      const label = isShowdown ? (step<1?'Reveal board':(step<2?'Reveal hands':'Next hand')) : 'Next hand';
+      const act = isShowdown ? (step<2?'hand-reveal-step':'hand-next') : 'hand-next';
+      c.innerHTML = `<h3 class="title">Hand Result</h3><div class="sub">Review the last hand before continuing.</div><div class="row" style="margin-top:8px"><button class="btn primary" data-action="${act}">${label}</button><button class="btn" data-action="hand-close">Close</button></div>`;
+      return c;
+    }
+
+    if(!t.heroDecisionPending){
+      c.innerHTML = `<h3 class="title">Actions</h3><div class="sub">Waiting for AI actions…</div>`;
+      return c;
+    }
+    const hero = t.seats[0];
+    const prompt = t.heroTurnPrompt || buildHeroPrompt();
+    const callLabel = prompt.toCall > 0 ? `Call ${fmtChips(prompt.toCall)}` : 'Check';
+    const canCheck = prompt.toCall === 0;
+    const stackCapTo = hero.invested + hero.stack;
+    const presets = [
+      canCheck ? Math.max(t.bbAmt, Math.round(t.pot*0.33)) : Math.max(t.currentBet + t.bbAmt, Math.round(t.currentBet + t.pot*0.4)),
+      canCheck ? Math.max(t.bbAmt, Math.round(t.pot*0.66)) : Math.max(t.currentBet + t.bbAmt, Math.round(t.currentBet + t.pot*0.75)),
+      stackCapTo
+    ].map(v => Math.min(stackCapTo, Math.max(hero.invested + t.bbAmt, v)));
+
+    let coachingPanel = '';
+    if(sess.mode === 'live'){
+      const coach = sess.ui?.lastCoach;
+      const rows = [];
+      if(coach){
+        if(state.settings.coachingToggles.showGrade) rows.push(`<div class="pill ok"><span style="text-decoration:underline dotted" data-action="open-tooltip" data-term="grade">Current decision grade</span>: ${coach.grade}</div>`);
+        if(state.settings.coachingToggles.showEstimatedEV) rows.push(`<div class="pill"><span style="text-decoration:underline dotted" data-action="open-tooltip" data-term="ev">Estimated EV</span>: ${coach.estEV.toFixed(2)}</div>`);
+        if(state.settings.coachingToggles.showBestAction) rows.push(`<div class="pill"><span style="text-decoration:underline dotted" data-action="open-tooltip" data-term="best">Best model action</span>: ${coach.bestAction} (${coach.bestEV.toFixed(2)})</div>`);
+        if(state.settings.coachingToggles.showEVDelta) rows.push(`<div class="pill ${coach.deltaEV>0?'good':''}"><span style="text-decoration:underline dotted" data-action="open-tooltip" data-term="deltaev">ΔEV</span>: ${coach.deltaEV.toFixed(2)}</div>`);
+      } else {
+        rows.push('<div class="pill">Take an action to see coaching…</div>');
+      }
+      coachingPanel = `
+        <div class="card" style="margin:8px 0 0;padding:10px;background:#141b24;border-color:#2a3d5d">
+          <div class="row space">
+            <div style="font-weight:700">Live Coaching Overlay</div>
+            <button class="btn small" data-action="toggle-coaching-inline">Coaching Settings</button>
+          </div>
+          <div class="sub">These are estimated coaching signals (not exact solver EV). Toggle details in Settings.</div>
+          <div class="row" style="margin-top:6px;flex-wrap:wrap;gap:6px">${rows.join('')}</div>
+          ${state.settings.coachingToggles.showReasoning && coach ? `<div class="sub" style="margin-top:8px">${state.settings.explainLevel==='beginner' ? escapeHtml(coach.reasoningBeginner||coach.reasoning) : escapeHtml(coach.reasoningAdvanced||coach.reasoning)}</div>`:''}
+        </div>`;
+    }
+
+    c.innerHTML = `
+      <h3 class="title">Your Action</h3>
+      <div class="row"><span class="pill">To call: ${fmtChips(prompt.toCall)}</span><span class="pill">Pot odds est: ${(prompt.potOdds*100).toFixed(0)}%</span><span class="pill">Street: ${t.street}</span></div>
+      ${coachingPanel}
+      <div class="action-row" style="margin-top:8px">
+        <button class="btn danger" data-action="hero-action" data-kind="fold" ${canCheck?'disabled style="opacity:.4"':''}>Fold</button>
+        <button class="btn" data-action="hero-action" data-kind="${canCheck?'check':'call'}">${callLabel}</button>
+        <button class="btn good wide" data-action="hero-action" data-kind="raise" data-to="${presets[0]}">${canCheck?'Bet':'Raise'} to ${fmtChips(presets[0])}</button>
+      </div>
+      <div class="raise-preset">
+        <button class="btn small" data-action="hero-action" data-kind="raise" data-to="${presets[0]}">${fmtChips(presets[0])}</button>
+        <button class="btn small" data-action="hero-action" data-kind="raise" data-to="${presets[1]}">${fmtChips(presets[1])}</button>
+        <button class="btn small" data-action="hero-action" data-kind="raise" data-to="${presets[2]}">Jam ${fmtChips(presets[2])}</button>
+      </div>
+      <div class="notice" style="margin-top:8px">Phase 1 note: hand strength + showdown resolution are functional but simplified. We’ll replace this with the core model + robust evaluator in later phases.</div>
+    `;
+    return c;
+  }
+
+  function renderReview(){
+    const wrap = document.createElement('div'); wrap.className='list';
+    wrap.appendChild(htmlCard('Review', 'Session summaries, assessment reports, and key hand logs. In Phase 1 this is intentionally compact but real.'));
+    if(state.sessions.length === 0){
+      wrap.appendChild(htmlCard('No sessions yet', '<div class="sub">Play a silent or live session from Assess to populate review.</div>'));
+      wrap.appendChild(renderDiagnosticsSnippet());
+      return wrap;
+    }
+    const selected = state.sessions.find(s=>s.id===state.ui.selectedSessionId) || state.sessions[0];
+    wrap.appendChild(renderSessionInspector(selected));
+    const list = document.createElement('div'); list.className='card';
+    list.innerHTML = `<h3 class="title">Session History</h3><div class="list">${state.sessions.map(s=>sessionRowHtml(s)).join('')}</div>`;
+    wrap.appendChild(list);
+    wrap.appendChild(renderDiagnosticsSnippet());
+    return wrap;
+  }
+
+  function renderSessionInspector(s){
+    const c = document.createElement('div'); c.className='card';
+
+    const r = s.report || generateSessionReport(s);
+    const modePill = s.mode==='silent' ? '<span class="pill warn">Silent</span>' : '<span class="pill ok">Live Coaching</span>';
+    const leaks = (r.leakFlags||[]).length ? `<ul style="margin:8px 0 0 18px">${r.leakFlags.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ul>` : '<div class="sub">No obvious leak flags from current sample.</div>';
+    const latestHands = (s.logs||[]).slice(-5).reverse();
+    c.innerHTML = `
+      <div class="row space"><h3 class="title" style="margin:0">Session Report</h3>${modePill}</div>
+      <div class="sub">ID <span class="mono">${s.id}</span> • ${new Date(s.startedAt).toLocaleString()}</div>
+      <div class="kpi" style="margin-top:8px">
+        <div class="box"><div class="n">${r.grade}</div><div class="l">Grade</div></div>
+        <div class="box"><div class="n">${r.score}</div><div class="l">Score</div></div>
+        <div class="box"><div class="n">${r.vpip}%</div><div class="l">VPIP</div></div>
+        <div class="box"><div class="n">${r.pfr}%</div><div class="l">PFR</div></div>
+        <div class="box"><div class="n">${r.agg}%</div><div class="l">Raise Mix</div></div>
+        <div class="box"><div class="n">${r.confidence}%</div><div class="l">Confidence</div></div>
+      </div>
+      <div class="spacer"></div>
+      <div style="font-weight:700">Leak Summary</div>
+      ${leaks}
+      <div class="spacer"></div>
+      <div style="font-weight:700">Recent Hands</div>
+      <div class="list" style="margin-top:6px">
+        ${latestHands.length ? latestHands.map(h=>`<div class="session-item small"><div class="row space"><b>Hand ${h.n}</b><span class="pill ${h.result==='win'?'ok':h.result==='fold'?'warn':'bad'}">${h.result}</span></div><div class="muted">${h.heroCards.join(' ')} | Board: ${h.board.join(' ') || '—'} | Pot ${h.pot}</div><div class="mono muted">${(h.actions||[]).slice(-2).join(' • ')}</div></div>`).join('') : '<div class="sub">No hand logs saved.</div>'}
+      </div>
+    `;
+    return c;
+  }
+
+  function sessionRowHtml(s){
+    const r = s.report || {grade:'—',score:'—'};
+    return `<button class="session-item" data-action="select-session" data-session-id="${s.id}" style="text-align:left;width:100%">
+      <div class="row space"><div><b>${s.mode==='silent'?'Silent Assessment':'Live Coaching'}</b></div><span class="pill">${r.grade} / ${r.score}</span></div>
+      <div class="sub">${new Date(s.startedAt).toLocaleString()} • ${s.metrics?.handsPlayed||0} hands • ${s.summaryOnly?'Summary only':'Full detail'}</div>
+    </button>`;
+  }
+
+  function latestSummaryHtml(s){
+    const r = s.report || generateSessionReport(s);
+    return `<div class="row"><span class="pill ${s.mode==='silent'?'warn':'ok'}">${s.mode==='silent'?'Silent':'Live Coaching'}</span><span class="pill">${s.metrics?.handsPlayed||0} hands</span><span class="pill">${r.grade} / ${r.score}</span></div>
+      <div class="sub" style="margin-top:6px">VPIP ${r.vpip}% • PFR ${r.pfr}% • Raise Mix ${r.agg}% • Confidence ${r.confidence}%</div>`;
+  }
+
+  function renderLearn(){
+    const wrap = document.createElement('div'); wrap.className='list';
+    wrap.appendChild(htmlCard('Learn', 'Beginner-friendly explanations stay lightweight in Phase 1 while we focus on core play reliability.'));
+    wrap.appendChild(htmlCard('Core Concepts (preview)', `
+      <div class="list small">
+        <div class="session-item"><b>Silent Assessment</b><div class="sub">True assessment mode: no feedback while you play. This is how leaks are identified honestly.</div></div>
+        <div class="session-item"><b>Live Coaching</b><div class="sub">Same engine, but optional coaching overlays show model guidance in real time.</div></div>
+        <div class="session-item"><b>Estimated EV</b><div class="sub">A realistic, model-based estimate of action quality vs likely ranges — not solver-precise.</div></div>
+        <div class="session-item"><b>6-max tournament</b><div class="sub">The only v1 format. Fewer seats keeps the engine simpler and your reps more focused.</div></div>
+      </div>
+    `));
+    wrap.appendChild(renderDiagnosticsSnippet());
+    return wrap;
+  }
+
+  function renderSettings(){
+    const wrap = document.createElement('div'); wrap.className='list';
+    wrap.appendChild(htmlCard('Settings', 'Coaching overlays are fully toggleable and non-blocking. These settings affect future sessions.', `
+      <div class="list small">
+        <label class="session-item row space"><span>Default Silent Hands</span><input type="number" min="50" step="50" value="${state.settings.defaultSilentHands}" data-setting-num="defaultSilentHands" style="width:90px;background:#0f1116;color:#fff;border:1px solid #2b3140;border-radius:8px;padding:8px"></label>
+        <label class="session-item row space"><span>Explanation Level</span>
+          <select data-setting-select="explainLevel" style="width:140px;background:#0f1116;color:#fff;border:1px solid #2b3140;border-radius:8px;padding:8px">
+            <option value="beginner" ${state.settings.explainLevel==="beginner"?"selected":""}>Beginner</option>
+            <option value="advanced" ${state.settings.explainLevel==="advanced"?"selected":""}>Advanced</option>
+          </select>
+        </label>
+        <label class="session-item row space"><span>Default Live Hands</span><input type="number" min="20" step="10" value="${state.settings.defaultLiveHands}" data-setting-num="defaultLiveHands" style="width:90px;background:#0f1116;color:#fff;border:1px solid #2b3140;border-radius:8px;padding:8px"></label>
+        <label class="session-item row space"><span>AI Think Delay (ms)</span><input type="number" min="0" max="2000" step="50" value="${state.settings.aiThinkMs}" data-setting-num="aiThinkMs" style="width:90px;background:#0f1116;color:#fff;border:1px solid #2b3140;border-radius:8px;padding:8px"></label>
+        <label class="session-item row space"><span>Auto Next Hand (ms, 0=off)</span><input type="number" min="0" max="10000" step="100" value="${state.settings.autoNextHandMs||0}" data-setting-num="autoNextHandMs" style="width:90px;background:#0f1116;color:#fff;border:1px solid #2b3140;border-radius:8px;padding:8px"></label>
+      </div>
+    `));
+
+    
+    // Quick coaching overlay presets (optional convenience)
+    const presetCard = document.createElement('div'); presetCard.className='card';
+    presetCard.innerHTML = `
+      <h3 class="title">Coaching Presets</h3>
+      <div class="sub">Use a preset, then fine-tune individual toggles below.</div>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap">
+        <button class="btn" data-action="preset-coaching" data-preset="minimal">Minimal</button>
+        <button class="btn" data-action="preset-coaching" data-preset="standard">Standard</button>
+        <button class="btn" data-action="preset-coaching" data-preset="advanced">Advanced</button>
+      </div>
+    `;
+    wrap.appendChild(presetCard);
+
+const toggles = Object.entries(state.settings.coachingToggles).map(([k,v]) => `
+      <label class="session-item row space"><span>${prettyToggle(k)}</span>
+        <input type="checkbox" ${v?'checked':''} data-setting-toggle="${k}" style="width:20px;height:20px">
+      </label>`).join('');
+    wrap.appendChild(htmlCard('Live Coaching Overlay Toggles', '<div class="sub">Presets come later. For now, direct toggles let you focus on what helps most.</div>' + `<div class="list" style="margin-top:8px">${toggles}</div>`));
+    wrap.appendChild(htmlCard('Data', `
+      <div class="row">
+        <button class="btn" data-action="export-state">Export Progress JSON</button>
+        <button class="btn danger" data-action="clear-data">Clear Local Data</button>
+      </div>
+      <div class="sub" style="margin-top:8px">Phase 1 keeps recent full sessions and summarizes older sessions later. Pinned/full-session save controls come in later phases.</div>
+    `));
+    wrap.appendChild(renderDiagnosticsSnippet(true));
+    return wrap;
+  }
+
+  function renderDiagnosticsSnippet(always=false){
+    if(!always && !state.ui.showDiagnostics) return document.createDocumentFragment();
+    const c = document.createElement('div'); c.className='card';
+    const cs0 = state.currentSession;
+    if(cs0?.ui?.showHandResult){
+      const step = cs0.ui.handResultStep||0;
+      const isShowdown = cs0.lastHand?.showdown;
+      const label = isShowdown ? (step<1?'Reveal board':(step<2?'Reveal hands':'Next hand')) : 'Next hand';
+      const act = isShowdown ? (step<2?'hand-reveal-step':'hand-next') : 'hand-next';
+      c.innerHTML = `<h3 class="title">Hand Result</h3><div class="sub">Review the last hand before continuing.</div><div class="row" style="margin-top:8px"><button class="btn primary" data-action="${act}">${label}</button><button class="btn" data-action="hand-close">Close</button></div>`;
+      return c;
+    }
+
+    const cs = state.currentSession;
+    c.innerHTML = `
+      <div class="row space"><h3 class="title" style="margin:0">Diagnostics</h3><button class="btn small" data-action="toggle-diagnostics">${state.ui.showDiagnostics?'Hide':'Show'}</button></div>
+      <div class="list small">
+        <div class="session-item"><b>Version</b><div class="mono muted">${APP_VERSION}</div></div>
+        <div class="session-item"><b>Storage</b><div class="mono muted">${state.diagnostics.storage}</div></div>
+        <div class="session-item"><b>Current Tab</b><div class="mono muted">${state.ui.tab}</div></div>
+        <div class="session-item"><b>Current Session</b><div class="mono muted">${cs ? `${cs.mode} • ${cs.metrics.handsPlayed}/${cs.handTarget} • street ${cs.table?.street}` : 'none'}</div></div>
+        <div class="session-item"><b>Last Error</b><div class="mono muted">${escapeHtml(state.diagnostics.lastError || 'none')}</div></div>
+        <div class="session-item"><b>Recent Events</b><div class="mono muted" style="max-height:100px;overflow:auto">${state.diagnostics.events.slice(0,8).map(e=>`[${e.t}] ${e.msg}`).join('<br>')}</div></div>
+      </div>
+    `;
+    return c;
+  }
+
+  function htmlCard(title, subtitle, inner=''){
+    const c = document.createElement('div');
+    c.className = 'card';
+    const h = document.createElement('h3');
+    h.className = 'title';
+    h.textContent = title || '';
+    c.appendChild(h);
+    if(subtitle){
+      const sub = document.createElement('div');
+      sub.className = 'small';
+      // allow basic inline HTML in subtitles we control (e.g., <b>), otherwise treat as plain text
+      if(typeof subtitle === 'string' && subtitle.indexOf('<') !== -1) sub.innerHTML = subtitle;
+      else sub.textContent = subtitle;
+      c.appendChild(sub);
+    }
+    if(inner){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = inner;
+      c.appendChild(wrap);
+    }
+    return c;
+  }
+
+
+
+  function renderHelp(){
+    const modal = document.getElementById('helpModal');
+    modal.classList.toggle('show', state.ui.showHelp);
+    const gl = document.getElementById('glossaryList');
+    gl.innerHTML = glossary.map(([term,def]) => `<div class="session-item"><b>${escapeHtml(term)}</b><div class="sub">${escapeHtml(def)}</div></div>`).join('');
+  }
+
+  function prettyToggle(k){
+    return k.replace(/([A-Z])/g,' $1').replace(/^./,m=>m.toUpperCase());
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>'"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
+  }
+
+  // --- Tooltips / beginner definitions ---
+  const TOOLTIP_TERMS = {
+    ev: {t:'Estimated EV (in big blinds)', b:'EV is “expected value”: the average result if you played this same spot many times. EV 0.47 means about +0.47 big blinds on average. In v1 this is a model estimate (not solver-precise).'},
+    deltaev: {t:'ΔEV (Delta EV)', b:'How much EV you gained or lost versus the model’s best action in this spot. Example: ΔEV -0.30 means you likely gave up ~0.30 big blinds versus the best option.'},
+    edge: {t:'Edge (estimated)', b:'A short summary of how advantageous your decision was versus a baseline. In Phase 1 this is an estimated coaching signal.'},
+    grade: {t:'Current decision grade', b:'This grade refers to the decision you just made right now (not the prior hand).'},
+    best: {t:'Best model action', b:'The action the coaching model estimates performs best against the opponent’s likely range and tendencies.'},
+  };
+
+  function showTooltip(term){
+    const key = String(term||'').toLowerCase();
+    const data = TOOLTIP_TERMS[key] || {t:'Info', b:'No definition found for this item yet.'};
+    const tt = document.getElementById('tooltip');
+    if(!tt) return;
+    tt.innerHTML = `<button class="x" data-action="close-tooltip">Close</button><div class="t">${escapeHtml(data.t)}</div><div class="b">${escapeHtml(data.b)}</div>`;
+    tt.style.display = 'block';
+  }
+  function hideTooltip(){
+    const tt = document.getElementById('tooltip');
+    if(tt) tt.style.display = 'none';
+  }
+
+  // --- Card rendering helpers ---
+  function isRedSuit(s){ return s === '♥' || s === '♦'; }
+  function cardHtml(c){
+    if(!c) return '';
+    const r = c.slice(0, -1);
+    const s = c.slice(-1);
+    return `${escapeHtml(r)}<span class="suit ${isRedSuit(s)?'red':''}">${escapeHtml(s)}</span>`;
+  }
+>
